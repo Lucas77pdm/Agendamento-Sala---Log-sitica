@@ -96,21 +96,30 @@ async function carregarEventos(data) {
 
   snapshot.forEach(docSnap => {
     const ev = docSnap.data();
-    const li = document.createElement("li");
-    li.className = "list-group-item d-flex justify-content-between align-items-start flex-column";
-    li.innerHTML = `
-      <div><strong>Responsável:</strong> ${ev.responsavel}</div>
-      <div><strong>E-mail:</strong> ${ev.email || "—"}</div>
-      <div><strong>Setor:</strong> ${ev.setor}</div>
-      <div><strong>Início:</strong> ${ev.horaInicio} &nbsp;&nbsp; <strong>Fim:</strong> ${ev.horaFim}</div>
-      <div class="text-end mt-2">
-        <button class="btn btn-sm btn-danger" data-id="${docSnap.id}">
-          <i class="bi bi-trash"></i> Excluir
-        </button>
+
+    const card = document.createElement("div");
+    card.className = "card shadow-sm mb-3 border-start border-2 border-danger"; 
+
+    card.innerHTML = `
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <h5 class="card-title mb-1"><i class="bi bi-person-circle me-2"></i>${ev.responsavel}</h5>
+          <p class="card-subtitle text-muted small mb-2"><i class="bi bi-envelope-fill me-1"></i> ${ev.email || "—"}</p>
+          <p class="mb-1"><i class="bi bi-building me-2"></i><strong>Setor:</strong> ${ev.setor}</p>
+          <p class="mb-1"><i class="bi bi-clock me-2"></i><strong>Início:</strong> ${ev.horaInicio} | <strong>Fim:</strong> ${ev.horaFim}</p>
+        </div>
+        <div class="text-end">
+          <button class="btn btn-outline-danger btn-sm" data-id="${docSnap.id}" title="Excluir evento">
+            <i class="bi bi-trash-fill"></i>
+          </button>
+        </div>
       </div>
-    `;
-    li.querySelector("button").addEventListener("click", () => excluirEvento(docSnap.id, data));
-    lista.appendChild(li);
+    </div>
+  `;
+
+    card.querySelector("button").addEventListener("click", () => excluirEvento(docSnap.id, data));
+    lista.appendChild(card);
   });
 }
 
