@@ -98,7 +98,7 @@ async function carregarEventos(data) {
     const ev = docSnap.data();
 
     const card = document.createElement("div");
-    card.className = "card shadow-sm mb-3 border-start border-2 border-danger"; 
+    card.className = "card shadow-sm mb-3 border-start border-2 border-danger";
 
     card.innerHTML = `
     <div class="card-body">
@@ -142,8 +142,13 @@ function handleEventSubmit() {
     const horaFim = document.getElementById("inputHoraFim").value;
     const email = document.getElementById("inputEmail").value.trim();
 
-    if (!responsavel || !setor || !horaInicio || !horaFim) {
-      alert("Preencha todos os campos obrigatórios.");
+    if (!responsavel || !setor || !horaInicio || !horaFim || !email) {
+      Swal.fire("Campos obrigatórios", "Por favor, preencha todos os campos.", "warning");
+      return;
+    }
+
+    if (horaFim <= horaInicio) {
+      Swal.fire("Horário inválido", "O horário final deve ser após o horário inicial.", "warning");
       return;
     }
 
