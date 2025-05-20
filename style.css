@@ -104,3 +104,18 @@ body[data-bs-theme="light"] .modal-content {
   background-color: #ffffff;
   color: #000000;
 }
+
+.card:hover {
+  transform: scale(1.01);
+  transition: 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.card-subtitle {
+  font-size: 0.85rem;
+}
