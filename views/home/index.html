@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calendário de Programação</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
+
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/logos/favicons/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/logos/favicons/favicon-32x32.png">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <link rel="stylesheet" href="/public/css/fonts.css">
+    <link rel="stylesheet" href="/views/home/style.css">
+</head>
+
+<body class="d-flex theme-transition" data-bs-theme="light">
+
+    <div class="sidebar d-flex flex-column p-3 bg-dark text-white" style="height: 100vh; overflow: hidden;">
+
+        <!-- Conteúdo rolável -->
+        <div class="flex-grow-1 overflow-auto">
+            <!-- Topo da sidebar -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="text-center"> ㅤAGENDAR SALA 📅 LOGÍSTICA </h5>
+                <button id="btnToggleSidebar" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-list"></i>
+                </button>
+            </div>
+
+            <!-- Botão do dropdown -->
+            <button class="btn text-white w-100 text-start d-flex justify-content-between align-items-center"
+                type="button" id="appsSetores">
+                <span><i class="bi bi-diagram-3 me-2"></i> Aplicativos</span>
+                <i class="bi bi-chevron-down" id="iconeApps"></i>
+            </button>
+
+            <!-- Conteúdo que expande -->
+            <div class="collapse mt-2" id="appsCollapse">
+                <a class="d-block ms-3 my-1 text-white" target="_blank"
+                    href="https://mail.google.com/mail/?tab=rm&amp;authuser=0&amp;ogbl">
+                    <i class="bi bi-envelope-fill me-2"></i> Gmail
+                </a>
+                <a class="d-block ms-3 my-1 text-white" target="_blank" href="https://app.slack.com/client/TD1M4FGR1">
+                    <i class="bi bi-chat-dots-fill me-2"></i> Slack
+                </a>
+                <a class="d-block ms-3 my-1 text-white" target="_blank" href="https://drive.google.com/drive/u/0/home">
+                    <i class="bi bi-cloud-fill me-2"></i> Google Drive
+                </a>
+                <a class="d-block ms-3 my-1 text-white" target="_blank" href="https://meet.google.com/landing">
+                    <i class="bi bi-camera-video-fill me-2"></i> Meet
+                </a>
+            </div>
+        </div>
+
+        <!-- Rodapé fixo -->
+        <div class="border-top pt-3 text-white small">
+            <!-- Data e Hora Atual -->
+            <div class="text-center mb-3">
+                <div class="fw-bold" id="currentDate" style="font-size: 1.1rem;"></div>
+                <div id="currentTime" style="font-size: 1rem;"></div>
+            </div>
+
+            <!-- Widget do Clima -->
+            <div class="weather-widget bg-secondary bg-opacity-25 rounded p-3 mb-4 text-white text-center">
+                <div id="weatherIcon" style="font-size: 2rem;"></div>
+                <div id="weatherTemp" class="fw-bold" style="font-size: 1.2rem;">--°C</div>
+                <div id="weatherDesc" style="font-size: 0.9rem;">Carregando...</div>
+                <div id="weatherTime" style="font-size: 0.85rem;"></div>
+            </div>
+
+            <div class="d-grid gap-2 mb-2">
+                <button id="toggleTheme" class="btn btn-sm btn-outline-light">
+                    <i class="bi bi-moon-stars"></i> Trocar Tema
+                </button>
+            </div>
+
+            <div class="d-grid gap-2 mb-2">
+                <button class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="#modalSuporte">
+                    <i class="bi bi-headset"></i> Suporte
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main -->
+    <div class="content flex-grow-1 p-4">
+        <div id="calendar"></div>
+    </div>
+
+    <!-- Modal evento -->
+    <div class="modal fade" id="modalEventos" tabindex="-1" aria-labelledby="modalEventosLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content shadow-lg">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="modalEventosLabel">Eventos</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Lista de eventos -->
+                    <ul id="listaEventos" class="list-group mb-4"></ul>
+
+                    <!-- Botão para criar novo evento -->
+                    <div class="d-grid mb-3">
+                        <button class="btn btn-success" id="btnMostrarFormulario" aria-expanded="false"
+                            aria-controls="formNovoEvento">
+                            <i class="bi bi-plus-circle"></i> Criar Agenda
+                        </button>
+                    </div>
+
+                    <!-- Formulário escondido inicialmente -->
+                    <form id="formNovoEvento" class="d-none">
+                        <input type="hidden" id="dataSelecionada" />
+
+                        <div class="mb-3">
+                            <label for="inputResponsavel" class="form-label">Responsável <span
+                                    class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person-fill"></i></span>
+                                <input type="text" id="inputResponsavel" class="form-control"
+                                    placeholder="Nome do responsável" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="inputEmail" class="form-label">E-mail <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+                                <input type="email" id="inputEmail" class="form-control" placeholder="Insira seu E-mail"
+                                    required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="inputCC" class="form-label">E-mail (CC)</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+                                <input type="text" class="form-control" id="inputCC" placeholder="Insira os E-mails">
+                            </div>
+                            <div class="form-text">Separe os e-mails por ponto e vírgula ( ; ).</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="inputSetor" class="form-label">Área Logística <span
+                                    class="text-danger">*</span></label>
+                            <select id="inputSetor" class="form-select" required>
+                                <option value="" disabled selected>Selecione...</option>
+                                <option value="Inbound">Inbound</option>
+                                <option value="Customer">Customer</option>
+                                <option value="Armazenagem">Armazenagem</option>
+                                <option value="Expedição">Expedição</option>
+                                <option value="Fretes">Fretes</option>
+                                <option value="Transportes">Transportes</option>
+                                <option value="DataScience">Data science</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="inputHoraInicio" class="form-label">Hora de Início <span
+                                    class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-clock-fill"></i></span>
+                                <input type="time" id="inputHoraInicio" class="form-control" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="inputHoraFim" class="form-label">Hora de Fim <span
+                                    class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-clock-history"></i></span>
+                                <input type="time" id="inputHoraFim" class="form-control" required />
+                            </div>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" id="btnSalvarEvento">
+                                <i class="bi bi-save"></i> Salvar Evento
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- modal suporte -->
+    <div class="modal fade" id="modalSuporte" tabindex="-1" aria-labelledby="modalSuporteLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="modalSuporteLabel"><i class="bi bi-headset"></i> Central de Suporte</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Fechar"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <!-- Nav Tabs -->
+                    <ul class="nav nav-tabs mb-3" id="suporteTab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="doc-tab" data-bs-toggle="tab" data-bs-target="#doc"
+                                type="button" role="tab">
+                                📘 Aprender a usar
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="contato-tab" data-bs-toggle="tab" data-bs-target="#contato"
+                                type="button" role="tab">
+                                📨 Falar com o suporte
+                            </button>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content">
+
+                        <!-- Aba 1: Aprender a usar -->
+                        <div class="tab-pane fade show active" id="doc" role="tabpanel" aria-labelledby="doc-tab">
+                            <h5 class="text-primary fw-bold mb-3"><i class="bi bi-journal-text"></i> Guia Rápido de
+                                Utilização</h5>
+                            <p class="mb-4">Bem-vindo ao sistema de agendamento! Abaixo está um passo a passo simples e
+                                direto para te
+                                orientar no uso:</p>
+
+                            <div class="mb-3">
+                                <h6 class="text-success"><i class="bi bi-calendar-check-fill"></i> Como agendar uma
+                                    reunião</h6>
+                                <ol class="text-muted ps-3">
+                                    <li class="mb-2"><strong class="text-dark">Verifique a disponibilidade:</strong>
+                                        Confira os eventos já
+                                        existentes no calendário.</li>
+                                    <li class="mb-2"><strong class="text-dark">Escolha a data desejada:</strong> Clique
+                                        no dia desejado no
+                                        calendário.</li>
+                                    <li class="mb-2"><strong class="text-dark">Clique em <span
+                                                class="badge bg-primary">CRIAR
+                                                AGENDA</span>:</strong> Esse botão aparecerá ao clicar no dia.</li>
+                                    <li class="mb-2"><strong class="text-dark">Preencha o formulário:</strong> Informe
+                                        os dados como
+                                        responsável, e-mail, setor e horário.</li>
+                                    <li class="mb-2"><strong class="text-dark">Salve o evento:</strong> Clique no botão
+                                        <span class="badge bg-success">SALVAR EVENTO</span>.</li>
+                                    <li class="mb-2"><strong class="text-dark">Confirmação por e-mail:</strong> Você
+                                        receberá um <span class="text-primary fw-semibold">e-mail de confirmação</span>.
+                                    </li>
+                                </ol>
+                            </div>
+
+                            <hr>
+
+                            <div class="mb-3">
+                                <h6 class="text-danger"><i class="bi bi-trash-fill"></i> Como excluir um evento</h6>
+                                <ol class="text-muted ps-3">
+                                    <li class="mb-2"><strong class="text-dark">Clique na data do evento:</strong> Acesse
+                                        o calendário e
+                                        selecione o dia.</li>
+                                    <li class="mb-2"><strong class="text-dark">Pressione o ícone <i
+                                                class="bi bi-trash"></i>:</strong> Um
+                                        botão de lixeira será exibido.</li>
+                                    <li class="mb-2"><strong class="text-dark">Confirme a exclusão:</strong> Uma
+                                        confirmação será exibida.
+                                        Confirme para concluir.</li>
+                                </ol>
+                            </div>
+
+                            <div class="alert alert-secondary small" role="alert">
+                                <i class="bi bi-info-circle-fill text-info"></i> Ainda com dúvidas? Vá para a aba
+                                <strong>“Falar com o
+                                    suporte”</strong> para ajuda personalizada.
+                            </div>
+                        </div>
+
+                        <!-- Aba 2: Falar com o suporte -->
+                        <div class="tab-pane fade" id="contato" role="tabpanel" aria-labelledby="contato-tab">
+                            <h5 class="text-primary fw-bold mb-3"><i class="bi bi-envelope-fill"></i> Contato com o
+                                Suporte</h5>
+                            <p class="text-muted">Use o formulário abaixo para enviar dúvidas, sugestões ou relatar um
+                                problema.
+                                Responderemos o mais breve possível.</p>
+
+                            <form id="form-suporte">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="nome" class="form-label fw-semibold">Nome</label>
+                                        <input type="text" class="form-control" id="nome"
+                                            placeholder="Seu nome completo" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label fw-semibold">E-mail</label>
+                                        <input type="email" class="form-control" id="email"
+                                            placeholder="seuemail@grupomulti.com.br" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="assunto" class="form-label fw-semibold">Assunto</label>
+                                    <select class="form-select" id="assunto" required>
+                                        <option selected disabled value="">Escolha o tipo de solicitação</option>
+                                        <option>Dúvida sobre o sistema</option>
+                                        <option>Erro ao agendar</option>
+                                        <option>Solicitação de melhoria</option>
+                                        <option>Outro</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="mensagem" class="form-label fw-semibold">Mensagem</label>
+                                    <textarea class="form-control" id="mensagem" rows="4"
+                                        placeholder="Descreva aqui sua dúvida ou problema..." required></textarea>
+                                </div>
+
+                                <div class="d-flex justify-content-end">
+                                    <button type="submit" class="btn btn-danger"><i class="bi bi-send-fill me-1"></i>
+                                        Enviar
+                                        Mensagem</button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module" src="app.js"></script>
+
+    <!-- SCRIPT ENVIAR EMAIL SUPORTE -->
+    <script type="module">
+        import emailjs from 'https://esm.sh/@emailjs/browser';
+
+        emailjs.init('S5z-uscLRW-2O_geS');
+
+        document.getElementById("form-suporte").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const nome = document.getElementById("nome").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const assunto = document.getElementById("assunto").value;
+            const mensagem = document.getElementById("mensagem").value.trim();
+
+            if (!nome || !email || !assunto || !mensagem) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Campos obrigatórios',
+                    text: 'Por favor, preencha todos os campos.'
+                });
+                return;
+            }
+
+            const dados = {
+                from_name: nome,
+                reply_to: email,
+                user_email: email,
+                to_email: 'lucas.areis@grupomulti.com.br',
+                subject: assunto,
+                message: mensagem
+            };
+
+            emailjs.send("service_7lx5f7d", "template_ngvkqhm", dados, "S5z-uscLRW-2O_geS")
+                .then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Mensagem enviada!',
+                        text: 'Seu chamado foi enviado com sucesso.',
+                        confirmButtonText: 'Ok'
+                    });
+                    document.getElementById("form-suporte").reset();
+                })
+                .catch((error) => {
+                    console.error("Erro ao enviar:", error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro ao enviar',
+                        text: 'Não foi possível enviar a mensagem. Tente novamente mais tarde.'
+                    });
+                });
+        });
+    </script>
+
+    <!-- AGENDAMENTO / ENVIO DE E-MAIL -->
+    <script type="module" src="/public/js/app.js"></script>
+
+</body>
+
+</html>
